@@ -10,14 +10,14 @@ object RetrofitClient {
     
     // Cambiar según ambiente
     private const val BASE_URL_EMULATOR = "http://10.0.2.2:3000/api/mobile/"
-    private const val BASE_URL_DEVICE = "http://192.168.1.12:3000/api/mobile/"
+    private const val BASE_URL_DEVICE = "http://192.168.90.136:3000/api/mobile/"
     private const val BASE_URL_PRODUCTION = "https://tu-app.onrender.com/api/mobile/"
     
     // Usar la URL apropiada
     private const val BASE_URL = BASE_URL_DEVICE
     
     // Exponer la URL base sin el sufijo /api/mobile/ para uso directo
-    const val BACKEND_BASE_URL = "http://192.168.1.12:3000"
+    const val BACKEND_BASE_URL = "http://192.168.90.136:3000"
     
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY

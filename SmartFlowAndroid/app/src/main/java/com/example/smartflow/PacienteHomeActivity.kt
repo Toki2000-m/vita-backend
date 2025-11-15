@@ -1,17 +1,17 @@
 package com.example.smartflow
 
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.os.Bundle
-import android.widget.Button
-import android.widget.ImageView
+import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import coil.load
-import coil.transform.CircleCropTransformation
+import androidx.core.content.ContextCompat
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
 
 class PacienteHomeActivity : AppCompatActivity() {
@@ -32,10 +32,11 @@ class PacienteHomeActivity : AppCompatActivity() {
         googleClient = GoogleSignIn.getClient(this, gso)
 
         val tvWelcome = findViewById<TextView>(R.id.tv_welcome)
-        val btnBuscarMedicos = findViewById<Button>(R.id.btn_buscar_medicos)
-        val btnMisCitas = findViewById<Button>(R.id.btn_mis_citas)
-        val btnPerfil = findViewById<Button>(R.id.btn_perfil)
-        val btnCerrarSesion = findViewById<Button>(R.id.btn_cerrar_sesion)
+        val btnLogoutHeader = findViewById<ImageButton>(R.id.btn_logout_header)
+        val bottomNavigation = findViewById<BottomNavigationView>(R.id.bottom_navigation)
+
+        // Deshabilitar tint en los iconos para que se vean con sus colores originales
+        bottomNavigation.itemIconTintList = null
 
         // Obtener datos del usuario desde SharedPreferences
         val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
@@ -60,22 +61,42 @@ class PacienteHomeActivity : AppCompatActivity() {
         }
         */
 
-        btnBuscarMedicos.setOnClickListener {
-            Toast.makeText(this, "Buscar médicos - Próximamente", Toast.LENGTH_SHORT).show()
-            // TODO: Implementar búsqueda de médicos
+        // Bottom Navigation Listener
+        bottomNavigation.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.nav_home -> {
+                    Toast.makeText(this, "Inicio", Toast.LENGTH_SHORT).show()
+                    true
+                }
+                R.id.nav_search -> {
+                    Toast.makeText(this, "Buscar médicos", Toast.LENGTH_SHORT).show()
+                    // TODO: Navegar a búsqueda de médicos
+                    true
+                }
+                R.id.nav_citas -> {
+                    Toast.makeText(this, "Mis citas", Toast.LENGTH_SHORT).show()
+                    // TODO: Navegar a mis citas
+                    true
+                }
+                R.id.nav_notifications -> {
+                    Toast.makeText(this, "Notificaciones", Toast.LENGTH_SHORT).show()
+                    // TODO: Navegar a notificaciones
+                    true
+                }
+                R.id.nav_profile -> {
+                    Toast.makeText(this, "Perfil", Toast.LENGTH_SHORT).show()
+                    // TODO: Navegar a perfil
+                    true
+                }
+                else -> false
+            }
         }
 
-        btnMisCitas.setOnClickListener {
-            Toast.makeText(this, "Mis citas - Próximamente", Toast.LENGTH_SHORT).show()
-            // TODO: Implementar vista de citas del paciente
-        }
+        // Seleccionar Home por defecto
+        bottomNavigation.selectedItemId = R.id.nav_home
 
-        btnPerfil.setOnClickListener {
-            Toast.makeText(this, "Mi perfil - Próximamente", Toast.LENGTH_SHORT).show()
-            // TODO: Implementar perfil del usuario
-        }
-
-        btnCerrarSesion.setOnClickListener {
+        // Botón de logout en el header
+        btnLogoutHeader.setOnClickListener {
             // Cerrar sesión de Firebase
             auth.signOut()
             
