@@ -1,15 +1,14 @@
-require('dotenv').config(); // Carga las variables del .env
+require('dotenv').config();
 
 const express = require('express');
-const http = require('http');           // Para crear el servidor
-const socketIO = require('socket.io');  // Para WebSockets
+const http = require('http');
+const socketIO = require('socket.io');
 const cors = require('cors');
 const morgan = require('morgan');
 const connectDB = require('./config/database');
 const config = require('./config/env');
 
-// Importar rutas
-const webRoutes = require('./modules/web/routes'); // tu router web
+const webRoutes = require('./modules/web/routes');
 const mobileRoutes = require('./modules/mobile/routes');
 
 const app = express();
@@ -19,30 +18,35 @@ connectDB();
 
 // Lista de orígenes permitidos
 const allowedOrigins = [
-  'http://localhost:3000',           // Front local
-  'http://localhost:3001',           // Otro puerto de pruebas
-  'https://smartflow-web.vercel.app' // Reemplaza con tu dominio live
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'https://smartflow-web.vercel.app'
 ];
 
-// Middlewares globales
+// 🔧 CORS mejorado
 app.use(cors({
   origin: function(origin, callback){
-    if(!origin || allowedOrigins.indexOf(origin) !== -1){
+    // Permitir requests sin origin (mobile apps, Postman, etc)
+    if(!origin) return callback(null, true);
+    
+    if(allowedOrigins.indexOf(origin) !== -1){
       callback(null, true);
     } else {
       callback(new Error('CORS policy: este origen no está permitido'));
     }
   },
-  methods: ['GET','POST','PUT','DELETE','OPTIONS'],
-  allowedHeaders: ['Content-Type','Authorization'],
-  credentials: true // esto permite enviar cookies / tokens de sesión
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], // ✅ Agregado PATCH
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'], // ✅ Más headers
+  credentials: true,
+  optionsSuccessStatus: 200 // ✅ Para navegadores viejos
 }));
 
+// ✅ Manejo explícito de preflight para todas las rutas
+app.options('*', cors());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Logger solo en desarrollo
 if (config.nodeEnv === 'development') {
   app.use(morgan('dev'));
 }
@@ -81,22 +85,33 @@ app.use((err, req, res, next) => {
   });
 });
 
-// ⚡ Integrar Socket.IO sin cambiar tu lógica
+// Socket.IO con CORS mejorado
 const server = http.createServer(app);
-const io = socketIO(server, { cors: { origin: allowedOrigins } });
-app.set('io', io); // para usarlo desde controllers
+const io = socketIO(server, {
+  cors: {
+    origin: allowedOrigins,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], // ✅ Agregado PATCH
+    credentials: true
+  }
+});
+
+app.set('io', io);
 
 io.on('connection', (socket) => {
   console.log('Usuario conectado a Socket.IO:', socket.id);
 
   socket.on('join', (usuarioId) => {
-    socket.join(usuarioId); // cada usuario tiene su sala
+    socket.join(usuarioId);
     console.log(`Usuario ${usuarioId} se unió a su sala`);
+  });
+
+  socket.on('disconnect', () => {
+    console.log('Usuario desconectado:', socket.id);
   });
 });
 
 // Iniciar servidor
-const PORT = config.port;
+const PORT = config.port || 3000;
 server.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en puerto ${PORT} en modo ${config.nodeEnv}`);
 });
