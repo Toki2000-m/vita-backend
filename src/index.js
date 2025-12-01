@@ -21,7 +21,7 @@ connectDB();
 const allowedOrigins = [
   'http://localhost:3000',           // Front local
   'http://localhost:3001',           // Otro puerto de pruebas
-  'https://tu-front-en-produccion.com' // Reemplaza con tu dominio live
+  'https://smartflow-web.vercel.app' // Reemplaza con tu dominio live
 ];
 
 // Middlewares globales
@@ -34,8 +34,10 @@ app.use(cors({
     }
   },
   methods: ['GET','POST','PUT','DELETE','OPTIONS'],
-  allowedHeaders: ['Content-Type','Authorization']
+  allowedHeaders: ['Content-Type','Authorization'],
+  credentials: true // esto permite enviar cookies / tokens de sesión
 }));
+
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
