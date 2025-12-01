@@ -17,8 +17,26 @@ const app = express();
 // Conectar a la base de datos
 connectDB();
 
+// Lista de orígenes permitidos
+const allowedOrigins = [
+  'http://localhost:3000',           // Front local
+  'http://localhost:3001',           // Otro puerto de pruebas
+  'https://tu-front-en-produccion.com' // Reemplaza con tu dominio live
+];
+
 // Middlewares globales
-app.use(cors({ origin: config.corsOrigin || '*' }));
+app.use(cors({
+  origin: function(origin, callback){
+    if(!origin || allowedOrigins.indexOf(origin) !== -1){
+      callback(null, true);
+    } else {
+      callback(new Error('CORS policy: este origen no está permitido'));
+    }
+  },
+  methods: ['GET','POST','PUT','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization']
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -63,7 +81,7 @@ app.use((err, req, res, next) => {
 
 // ⚡ Integrar Socket.IO sin cambiar tu lógica
 const server = http.createServer(app);
-const io = socketIO(server, { cors: { origin: config.corsOrigin || '*' } });
+const io = socketIO(server, { cors: { origin: allowedOrigins } });
 app.set('io', io); // para usarlo desde controllers
 
 io.on('connection', (socket) => {
