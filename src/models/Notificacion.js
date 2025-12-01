@@ -27,7 +27,7 @@ const notificacionSchema = new mongoose.Schema(
     },
     canal: {
       type: String,
-      enum: ['email', 'whatsapp'],
+      enum: ['email', 'whatsapp', 'web'],
       required: [true, 'El canal es requerido'],
       description: 'Canal utilizado para enviar la notificación',
     },
@@ -36,6 +36,11 @@ const notificacionSchema = new mongoose.Schema(
       required: [true, 'La fecha de envío es requerida'],
       default: Date.now,
       description: 'Fecha en que se generó/enviará la notificación',
+    },
+    leida: {
+      type: Boolean,
+      default: false,
+      description: 'Indica si la notificación ya fue leída',
     },
   },
   {

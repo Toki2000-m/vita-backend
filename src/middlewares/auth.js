@@ -6,49 +6,37 @@ const config = require('../config/env');
 exports.protect = async (req, res, next) => {
   let token;
 
-  // Verificar si el token viene en los headers
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     token = req.headers.authorization.split(' ')[1];
   }
 
-  // Verificar que el token existe
   if (!token) {
-    return res.status(401).json({
-      success: false,
-      message: 'No autorizado para acceder a esta ruta',
-    });
+    return res.status(401).json({ success: false, message: 'No autorizado para acceder a esta ruta' });
   }
 
   try {
-    // Verificar token
     const decoded = jwt.verify(token, config.jwtSecret);
+    console.log('🔑 Token decodificado:', decoded);
 
-    // Obtener usuario del token
     req.user = await Usuario.findById(decoded.id);
 
     if (!req.user) {
-      return res.status(401).json({
-        success: false,
-        message: 'Usuario no encontrado',
-      });
+      return res.status(401).json({ success: false, message: 'Usuario no encontrado' });
     }
 
     next();
   } catch (error) {
-    return res.status(401).json({
-      success: false,
-      message: 'Token inválido o expirado',
-    });
+    return res.status(401).json({ success: false, message: 'Token inválido o expirado' });
   }
 };
 
 // Autorizar roles específicos
 exports.authorize = (...roles) => {
   return (req, res, next) => {
-    if (!roles.includes(req.user.role)) {
+    if (!roles.includes(req.user.rol)) {   // 👈 corregido: usa "rol"
       return res.status(403).json({
         success: false,
-        message: `El rol ${req.user.role} no tiene permisos para acceder a esta ruta`,
+        message: `El rol ${req.user.rol} no tiene permisos para acceder a esta ruta`,
       });
     }
     next();

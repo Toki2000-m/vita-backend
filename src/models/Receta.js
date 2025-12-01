@@ -30,13 +30,13 @@ const recetaSchema = new mongoose.Schema(
     },
     medicoId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: 'Usuario', // ✅ CAMBIAR DE 'User' A 'Usuario'
       required: [true, 'El ID del médico es requerido'],
       description: 'ID del médico que emite la receta',
     },
     pacienteId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: 'Usuario', // ✅ CAMBIAR DE 'User' A 'Usuario'
       required: [true, 'El ID del paciente es requerido'],
       description: 'ID del paciente que recibe la receta',
     },

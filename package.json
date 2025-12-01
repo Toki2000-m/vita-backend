@@ -8,6 +8,9 @@
     "dev": "nodemon src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "engines": {
+    "node": "18.x"
+  },
   "keywords": [
     "nodejs",
     "express",
@@ -25,8 +28,11 @@
     "express-validator": "^7.0.1",
     "firebase-admin": "^12.7.0",
     "jsonwebtoken": "^9.0.2",
+    "moment-timezone": "^0.6.0",
+    "mongodb": "^7.0.0",
     "mongoose": "^8.0.3",
-    "morgan": "^1.10.0"
+    "morgan": "^1.10.0",
+    "socket.io": "^4.8.1"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"

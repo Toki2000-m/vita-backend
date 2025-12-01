@@ -2,6 +2,15 @@ const Usuario = require('../../../models/Usuario');
 const jwt = require('jsonwebtoken');
 const config = require('../../../config/env');
 
+// Función para generar token JWT
+const generarToken = (user) => {
+  return jwt.sign(
+    { id: user._id, rol: user.rol, platform: user.platform },
+    config.jwtSecret,
+    { expiresIn: config.jwtExpires } // 👈 corregido: usa jwtExpires
+  );
+};
+
 // @desc    Login de usuario web
 // @route   POST /api/web/auth/login
 // @access  Public
@@ -9,7 +18,6 @@ exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Validar datos
     if (!email || !password) {
       return res.status(400).json({
         success: false,
@@ -19,45 +27,34 @@ exports.login = async (req, res) => {
 
     // Buscar usuario con password
     const user = await Usuario.findOne({ email, platform: 'web' }).select('+password');
-
     if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: 'Credenciales inválidas',
-      });
+      return res.status(401).json({ success: false, message: 'Credenciales inválidas' });
     }
 
     // Verificar password
     const isMatch = await user.comparePassword(password);
-
     if (!isMatch) {
-      return res.status(401).json({
-        success: false,
-        message: 'Credenciales inválidas',
-      });
+      return res.status(401).json({ success: false, message: 'Credenciales inválidas' });
     }
 
     // Crear token
-    const token = jwt.sign({ id: user._id, platform: 'web' }, config.jwtSecret, {
-      expiresIn: config.jwtExpire,
-    });
+    const token = generarToken(user);
 
     res.json({
       success: true,
       token,
       user: {
         id: user._id,
-        name: user.name,
+        nombre: user.nombre,
+        apellido: user.apellido,
         email: user.email,
-        role: user.role,
+        telefono: user.telefono,
+        rol: user.rol,
+        platform: user.platform
       },
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Error en el servidor',
-      error: error.message,
-    });
+    res.status(500).json({ success: false, message: 'Error en el servidor', error: error.message });
   }
 };
 
@@ -66,47 +63,40 @@ exports.login = async (req, res) => {
 // @access  Public
 exports.register = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { nombre, apellido, email, telefono, password, rol = 'paciente' } = req.body;
 
-    // Verificar si el usuario ya existe
-    const userExists = await Usuario.findOne({ email });
-
+    const userExists = await Usuario.findOne({ email, platform: 'web' });
     if (userExists) {
-      return res.status(400).json({
-        success: false,
-        message: 'El usuario ya existe',
-      });
+      return res.status(400).json({ success: false, message: 'El usuario ya existe' });
     }
 
-    // Crear usuario
     const user = await Usuario.create({
-      name,
+      nombre,
+      apellido,
       email,
+      telefono,
       password,
+      rol,
       platform: 'web',
     });
 
-    // Crear token
-    const token = jwt.sign({ id: user._id, platform: 'web' }, config.jwtSecret, {
-      expiresIn: config.jwtExpire,
-    });
+    const token = generarToken(user);
 
     res.status(201).json({
       success: true,
       token,
       user: {
         id: user._id,
-        name: user.name,
+        nombre: user.nombre,
+        apellido: user.apellido,
         email: user.email,
-        role: user.role,
+        telefono: user.telefono,
+        rol: user.rol,
+        platform: user.platform
       },
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Error en el servidor',
-      error: error.message,
-    });
+    res.status(500).json({ success: false, message: 'Error en el servidor', error: error.message });
   }
 };
 
@@ -115,17 +105,23 @@ exports.register = async (req, res) => {
 // @access  Private
 exports.getMe = async (req, res) => {
   try {
-    const user = await Usuario.findById(req.user.id);
+    if (!req.user) {
+      return res.status(401).json({ success: false, message: 'No autorizado para acceder a esta ruta' });
+    }
 
     res.json({
       success: true,
-      user,
+      user: {
+        id: req.user._id,
+        nombre: req.user.nombre,
+        apellido: req.user.apellido,
+        email: req.user.email,
+        telefono: req.user.telefono,
+        rol: req.user.rol,
+        platform: req.user.platform
+      },
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Error en el servidor',
-      error: error.message,
-    });
+    res.status(500).json({ success: false, message: 'Error en el servidor', error: error.message });
   }
 };

@@ -1,12 +1,15 @@
-require('dotenv').config();
+require('dotenv').config(); // Carga las variables del .env
+
 const express = require('express');
+const http = require('http');           // Para crear el servidor
+const socketIO = require('socket.io');  // Para WebSockets
 const cors = require('cors');
 const morgan = require('morgan');
 const connectDB = require('./config/database');
 const config = require('./config/env');
 
 // Importar rutas
-const webRoutes = require('./modules/web/routes');
+const webRoutes = require('./modules/web/routes'); // tu router web
 const mobileRoutes = require('./modules/mobile/routes');
 
 const app = express();
@@ -15,7 +18,7 @@ const app = express();
 connectDB();
 
 // Middlewares globales
-app.use(cors({ origin: config.corsOrigin }));
+app.use(cors({ origin: config.corsOrigin || '*' }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -58,9 +61,23 @@ app.use((err, req, res, next) => {
   });
 });
 
+// ⚡ Integrar Socket.IO sin cambiar tu lógica
+const server = http.createServer(app);
+const io = socketIO(server, { cors: { origin: config.corsOrigin || '*' } });
+app.set('io', io); // para usarlo desde controllers
+
+io.on('connection', (socket) => {
+  console.log('Usuario conectado a Socket.IO:', socket.id);
+
+  socket.on('join', (usuarioId) => {
+    socket.join(usuarioId); // cada usuario tiene su sala
+    console.log(`Usuario ${usuarioId} se unió a su sala`);
+  });
+});
+
 // Iniciar servidor
 const PORT = config.port;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en puerto ${PORT} en modo ${config.nodeEnv}`);
 });
 
